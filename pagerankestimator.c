@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <omp.h>
+#include "pagerankrestimator.h"
 
 //TODO: To compile: gcc -o <execname> -fopenmp <source file names>
 
@@ -10,23 +8,59 @@ int DEBUG = 1;
 
 int main(int argc, char const *argv[])
 {
-    if(argc < 5){
+    if(argc < 6){
         puts("Please enter the required input:");
-        puts("K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>");
+        puts("K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>, nSize:<# of nodes/vertex>");
         getchar();
         return -1;
     }
 
     int K = atoi(argv[1]);
-    float D = atof(argv[2]);
+    //double D = atof(argv[2]);
+    double D = -1.0;
+    sscanf(argv[2], "%lf", &D);
     char fileName[64] = {0};
     strcpy(fileName, argv[3]);
     int t = atoi(argv[4]);
+    int nSize = atoi(argv[5]);
+
     
-    if(DEBUG)
-    {
-        printf("K=%d  |  D=%f  |  fileName=%s  |  t=%d\n", K, D, fileName, t);
+    if(DEBUG){
+        printf("K=%d  |  D=%lf  |  fileName=%s  |  t=%d  |  nSize=%d\n", K, D, fileName, t, nSize);
     }
+
+    FILE *fp = fopen(fileName, "r");
+    if(fp == NULL){
+        printf("\n-=0={ERROR: Failed to Open %s}=0=-\n", fileName);
+        return -1;
+    }
+
+    char buf[512] = {0};
+    int node = -1;
+    int hyperlink = -1;
+    int i=0;
+    while( i < 12){//feof(fp)){
+        fgets(buf, 512, fp);
+
+        if(buf[0] == '#'){
+            if(DEBUG){
+                puts("testing");
+                sscanf(buf, "%d %d", &node, &hyperlink);
+                printf("node=%d  |  hyperlink=%d\n", node, hyperlink);
+            }
+            //!Skip lines with no data
+        }
+        else{
+            sscanf(buf, "%d %d", &node, &hyperlink);
+            printf("node=%d  |  hyperlink=%d\n", node, hyperlink);
+        }
+        //TODO: if next line is last line then keep node as size
+        i++;
+    }
+
+
+    //TODO: Make sure file exists, that is make sure fopen was succesful
+    //TODO: if they first char in a line is a '#' then trash that line and read a new line, else put line in data structure
 
     omp_set_num_threads(t);
     
