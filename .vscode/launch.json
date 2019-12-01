@@ -12,7 +12,7 @@
             "args": ["10",
                      ".10",
                      //"facebook_combined.txt",
-                     "web-Google_sorted.txt",
+                     "web-NotreDame_sorted.txt",
                      "4",
                      "4031"],
             "stopAtEntry": false,
