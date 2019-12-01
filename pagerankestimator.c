@@ -1,4 +1,4 @@
-#include "pagerankrestimator.h"
+#include "pagerankestimator.h"
 
 //TODO: To compile: gcc -o <execname> -fopenmp <source file names>
 
