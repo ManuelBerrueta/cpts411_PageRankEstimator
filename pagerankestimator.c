@@ -56,6 +56,7 @@ int main(int argc, char const *argv[])
     while(j < 24){//feof(fp)){
         fgets(buf, 512, fp);
 
+        //*If the first char in the line is a '#' ignore it
         if(buf[0] == '#'){
             if(DEBUG){
                 puts("testing");
@@ -100,10 +101,51 @@ int main(int argc, char const *argv[])
         }
     }
 
-    //TODO: Make sure file exists, that is make sure fopen was succesful
-    //TODO: if they first char in a line is a '#' then trash that line and read a new line, else put line in data structure
-
-    omp_set_num_threads(t);
     
+    
+    //!For each node do a walk of size K visits
+    i=0, j=0;
+    double dampingRatio = (1 - D);
+    omp_set_num_threads(t);
+
+    while(i < nSize){
+        j=0;
+        //TODO: figure out size of array
+        int x=0;
+        while(myGraph[i].hyperlinks[x] != 0){
+            x++;
+        }
+        x--;//Subtract the last increment
+        while(j < K){
+            //TODO: Keep track of the top 5
+            //      Possible: Use an array to keep track of the top 5 performers6
+            int seed = time(NULL);
+            //* Flip the coin, that is, use the Damping Ratio
+            double coinToss = ((double)rand_r(&seed) / (double)RAND_MAX);
+            if(coinToss >= dampingRatio){
+                int randomNode = (rand_r(&seed) % (nSize + 1 - 0) + 0);
+                myGraph[randomNode].pagerank++;
+            }
+            else
+            {
+                //*Choose a TargetNode from this node
+                int myTargetNode = (rand_r(&seed) % (x + 1 - 0) + 0);
+                //*Increment TargetNode
+                myGraph[myGraph[i].hyperlinks[myTargetNode]].pagerank++;
+
+                if(DEBUG){
+                    if(myGraph[i].hyperlinks[myTargetNode] == 0){
+                        puts("-=0=-={ERROR: Went out of bounds on array using rand");
+                    }
+                    printf("TargetNode==%d | myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ == %d (current value)\n", myGraph[i].hyperlinks[myTargetNode], i, myTargetNode, myGraph[myGraph[i].hyperlinks[myTargetNode]].pagerank);
+                }
+                j++;   
+            }
+        }
+        j=0;
+        i++;
+    }
+
+    //Generating random numbers in a range: rand() % (upper - lower + 1)) + lower
     return 0;
 }
