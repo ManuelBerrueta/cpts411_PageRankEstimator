@@ -4,7 +4,6 @@
 
 //*** Inputs listed in sequence
 //* K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>
-int DEBUG = 1;
 
 int main(int argc, char const *argv[])
 {
@@ -53,7 +52,8 @@ int main(int argc, char const *argv[])
     int hyperlink = -1;
     i=0;
     j=0;
-    while(j < 24){//feof(fp)){
+    //while(j < 24){//feof(fp)){
+    while(feof(fp)){
         fgets(buf, 512, fp);
 
         //*If the first char in the line is a '#' ignore it
@@ -108,7 +108,7 @@ int main(int argc, char const *argv[])
     double dampingRatio = (1 - D);
     omp_set_num_threads(t);
 
-    while(i < nSize){
+    while(i < nSize-1){
         j=0;
         //TODO: figure out size of array
         int x=0;
@@ -116,7 +116,7 @@ int main(int argc, char const *argv[])
             x++;
         }
         x--;//Subtract the last increment
-        while(j < K){
+        while(j < K-1){
             //TODO: Keep track of the top 5
             //      Possible: Use an array to keep track of the top 5 performers6
             int seed = time(NULL);
