@@ -7,7 +7,7 @@
 
 //* Generating random numbers in a range: rand() % (upper - lower + 1)) + lower
 
-int DEBUG = 1;
+int DEBUG = 0;
 
 int main(int argc, char const *argv[])
 {
@@ -198,8 +198,6 @@ int main(int argc, char const *argv[])
     }
 
     double duration = omp_get_wtime() - startTime;
-    printf("Time to execute threaded code: %0.3lf s \n", duration);
-
 
 
 
@@ -235,14 +233,12 @@ int main(int argc, char const *argv[])
         }
     }
 
-    if (DEBUG) {
-        puts("====DEBUG====");
-        puts("TOP Five pages =");
-        for (i = 0; i < 5; i++) {
-            printf("Node=%d\tpageRank=%d\n", topNodes[i], topFive[i]);
-        }
-        puts("");
+    puts("====== TOP Five pages =======");
+    for (i = 0; i < 5; i++) {
+        printf("Node=%d\tpageRank=%d\n", topNodes[i], topFive[i]);
     }
+
+    printf("Time to execute threaded code: %0.3lf s \n", duration);
 
     close(fp);
 
