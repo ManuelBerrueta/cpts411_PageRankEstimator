@@ -3,6 +3,7 @@
 #include <string.h>
 #include <omp.h>
 #include <time.h>
+#include <assert.h>
 
 typedef struct data{
     int pagerank;

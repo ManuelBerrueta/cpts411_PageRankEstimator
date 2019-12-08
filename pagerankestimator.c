@@ -1,9 +1,9 @@
 #include "pagerankestimator.h"
 
-//TODO: To compile: gcc -o <execname> -fopenmp <source file names>
+//To compile OpenMP: gcc -o <execname> -fopenmp <source file names>
 
 //*** Inputs listed in sequence
-//* K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>
+//* K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>, nSize:<Highest node value>
 
 //* Generating random numbers in a range: rand() % (upper - lower + 1)) + lower
 
@@ -31,6 +31,7 @@ int main(int argc, char const *argv[])
     char buf[512] = {0};
     int node = -1;
     int hyperlink = -1;
+    omp_set_num_threads(t);
 
 
     for (i = 0; i < nSize+1; i++) {
@@ -52,7 +53,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-
+    //#pragma omp parallel
     while (fgets(buf, 512, fp)) {
         if (buf[0] == '#') { //*If the first char in the line is a '#' ignore it
             if (DEBUG) {
@@ -94,14 +95,26 @@ int main(int argc, char const *argv[])
     //!For each node do a walk of size K visits
     i=0, j=0;
     double dampingRatio = (1 - D);
-    omp_set_num_threads(t);
-    int seed = -1;
+    int seed = time(NULL);
     double coinToss = -1;
     int randomNode = -1;
     int myTargetNode = -1;
     int numLinks = 0;
 
-    for (i = 0; i < nSize-1; i++) {
+    #pragma omp parallel
+    {
+        assert(t == omp_get_num_threads());
+        int rank = omp_get_thread_num();
+        if (DEBUG)
+        {
+            printf("Number of threads: %d\n", t);
+            printf("Rank=%d\t|\tRunning on %d threads", rank, t);
+        }
+    }
+
+
+    #pragma omp for
+    for (i = 0; i <= nSize; i++) {
         j = numLinks = 0;
         //TODO: figure out # of links
         while (myGraph[i].hyperlinks[numLinks] != -1) {
@@ -111,18 +124,17 @@ int main(int argc, char const *argv[])
 
         if (numLinks < 0) {
         } else {
-            for (j = 0; j < K-1; j++) {
+            for (j = 0; j < K; j++) {
                 //TODO: Keep track of the top 5
                 //TODO: Possible: Use an array to keep track of the top 5 performers
 
-                seed = time(NULL);
                 //* Flip the coin, that is, use the Damping Ratio
                 coinToss = ((double)rand_r(&seed) / (double)RAND_MAX);
                 if(coinToss >= dampingRatio){
                     randomNode = (rand_r(&seed) % (nSize + 1 - 0) + 0);
-                    
+
                     myGraph[randomNode].pagerank++;
-                    
+
                     if (DEBUG) {
                         if (myGraph[randomNode].hyperlinks[0] == -1) {
                             puts("-=0=-={Found NonTargetable NODE: Empty links, treat as random page");
@@ -131,27 +143,37 @@ int main(int argc, char const *argv[])
                     }  
                 } else {
                     //*Choose a TargetNode from this node
-                    myTargetNode = (rand_r(&seed) % (numLinks + 1 - 0) + 0);
+                    randomNode = (rand_r(&seed) % (numLinks + 1 - 0) + 0);
+                    myTargetNode = myGraph[i].hyperlinks[randomNode];
                     //*Increment TargetNode pagerank
-                    myGraph[myGraph[i].hyperlinks[myTargetNode]].pagerank++;
+                    myGraph[myTargetNode].pagerank++;
 
                     if (DEBUG) {
-                        if (myGraph[i].hyperlinks[myTargetNode] == -1) {
+                        if (myGraph[i].hyperlinks[randomNode] == -1) {
                             puts("-=0=-={ERROR: Went out of bounds on array using rand");
                         }
-                        printf("myTargetNode==%d \t\t|  Target=%d  \t|  myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ == %d (current value)\n", myTargetNode, myGraph[i].hyperlinks[myTargetNode], i, myTargetNode, myGraph[myGraph[i].hyperlinks[myTargetNode]].pagerank);
+                        printf("randomNode==%d \t\t|  Target=%d  \t|  myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ == %d (current value)\n", randomNode, myTargetNode, i, randomNode, myGraph[myTargetNode].pagerank);
                     }
                 }
             }
         }
-        
+
         if (DEBUG) {
-            if (i == 200) {
-                print("DEBUG TEST\n");
-                getchar();
+            if ((i % 10000) == 0) {
+                puts("=====================[ DEBUG ]=====================");
+                printf("Debug Test at i = %d\n", i);
+                //FACEBOOK TEST
+                //printf("%d\n", myGraph[3980].hyperlinks[54]);
+                //getchar();
+            }
+            if (i == 325727) {
+                puts("=====================[ DEBUG ]=====================");
+                printf("Debug Test at i = %d\n", i);
+                //getchar();                
             }
         }
     }
+    close(fp);
 
     return 0;
 }
