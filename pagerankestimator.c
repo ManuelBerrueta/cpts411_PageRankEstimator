@@ -111,10 +111,12 @@ int main(int argc, char const *argv[])
             printf("Rank=%d\t|\tRunning on %d threads", rank, t);
         }
     }
+    
+    int timeOfLinux = time(NULL);
 
     double startTime = omp_get_wtime();
 
-    #pragma omp parallel default(none) shared(DEBUG, j, K, D, myGraph, nSize) private(i)
+    #pragma omp parallel default(none) shared(DEBUG, timeOfLinux, j, K, D, myGraph, nSize) private(i)
     {
 
     //!For each node do a walk of size K visits
@@ -125,7 +127,7 @@ int main(int argc, char const *argv[])
     int myTargetNode = -1;
     int numLinks = 0;
     int myRank = omp_get_thread_num();
-    int seed = myRank + time(NULL);
+    int seed = myRank + timeOfLinux;
 
         #pragma omp for
         for (i = 0; i <= nSize; i++) {
@@ -145,6 +147,7 @@ int main(int argc, char const *argv[])
                     //* Flip the coin, that is, use the Damping Ratio
                     coinToss = ((double)rand_r(&seed) / (double)RAND_MAX);
                     if(coinToss >= dampingRatio){
+                        seed = myRank + timeOfLinux;
                         randomNode = (rand_r(&seed) % (nSize + 1 - 0) + 0);
 
                         myGraph[randomNode].pagerank++;
@@ -157,6 +160,7 @@ int main(int argc, char const *argv[])
                         }  
                     } else {
                         //*Choose a TargetNode from this node
+                        seed = myRank + timeOfLinux;
                         randomNode = (rand_r(&seed) % (numLinks + 1 - 0) + 0);
                         myTargetNode = myGraph[i].hyperlinks[randomNode];
                         //*Increment TargetNode pagerank

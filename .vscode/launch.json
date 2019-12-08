@@ -9,11 +9,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": ["100",                              //length of Random walks
+            "args": ["10",                              //length of Random walks
                      ".10",                             //Damping Ratio
                      "facebook_combined.txt",         //input files
                      //"web-NotreDame_sorted.txt",
-                     "6",                               //# of threads
+                     "4",                               //# of threads
                      "4038"                                   //# of nodes
                      //"325728" //"web-NotreDame_sorted.txt
                     ],
