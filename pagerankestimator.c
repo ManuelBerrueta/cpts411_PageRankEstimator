@@ -112,6 +112,7 @@ int main(int argc, char const *argv[])
         }
     }
 
+    double startTime = omp_get_wtime();
 
     #pragma omp parallel default(none) shared(DEBUG, j, K, D, myGraph, nSize) private(i)
     {
@@ -119,11 +120,12 @@ int main(int argc, char const *argv[])
     //!For each node do a walk of size K visits
     i=0, j=0;
     double dampingRatio = (1 - D);
-    int seed = time(NULL);
     double coinToss = -1;
     int randomNode = -1;
     int myTargetNode = -1;
     int numLinks = 0;
+    int myRank = omp_get_thread_num();
+    int seed = myRank + time(NULL);
 
         #pragma omp for
         for (i = 0; i <= nSize; i++) {
@@ -151,7 +153,7 @@ int main(int argc, char const *argv[])
                             if (myGraph[randomNode].hyperlinks[0] == -1) {
                                 puts("-=0=-={Found NonTargetable NODE: Empty links, treat as random page");
                             }
-                            printf("randomNode==%d  \t\t| myGraph[%d].pagerank++ == %d (current value)\n", randomNode, randomNode, myGraph[randomNode].pagerank);
+                            printf("Rank=%d\t\t|randomNode=%d\t\t| myGraph[%d].pagerank++ = %d (current value)\n", myRank, randomNode, randomNode, myGraph[randomNode].pagerank);
                         }  
                     } else {
                         //*Choose a TargetNode from this node
@@ -164,7 +166,7 @@ int main(int argc, char const *argv[])
                             if (myGraph[i].hyperlinks[randomNode] == -1) {
                                 puts("-=0=-={ERROR: Went out of bounds on array using rand");
                             }
-                            printf("randomNode==%d \t\t|  Target=%d  \t|  myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ == %d (current value)\n", randomNode, myTargetNode, i, randomNode, myGraph[myTargetNode].pagerank);
+                            printf("Rank=%d\t\t|randomNode=%d \t\t|  Target=%d  \t|  myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ = %d (current value)\n", myRank, randomNode, myTargetNode, i, randomNode, myGraph[myTargetNode].pagerank);
                         
                             if (i == 4038) {
                                 puts("=====================[ DEBUG ]=====================");
@@ -194,6 +196,10 @@ int main(int argc, char const *argv[])
 
 
     }
+
+    double duration = omp_get_wtime() - startTime;
+    printf("Time to execute threaded code: %0.3lf s \n", duration);
+
 
 
 
