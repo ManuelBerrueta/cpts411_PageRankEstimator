@@ -13,7 +13,7 @@
                      ".10",                             //Damping Ratio
                      "facebook_combined.txt",         //input files
                      //"web-NotreDame_sorted.txt",
-                     "4",                               //# of threads
+                     "8",                               //# of threads
                      "4038"                                   //# of nodes
                      //"325728" //"web-NotreDame_sorted.txt
                     ],

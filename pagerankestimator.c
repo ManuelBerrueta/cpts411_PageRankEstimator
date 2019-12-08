@@ -93,13 +93,13 @@ int main(int argc, char const *argv[])
     }
 
     //!For each node do a walk of size K visits
-    i=0, j=0;
+/*     i=0, j=0;
     double dampingRatio = (1 - D);
     int seed = time(NULL);
     double coinToss = -1;
     int randomNode = -1;
     int myTargetNode = -1;
-    int numLinks = 0;
+    int numLinks = 0; */
 
     #pragma omp parallel
     {
@@ -113,66 +113,131 @@ int main(int argc, char const *argv[])
     }
 
 
-    #pragma omp for
-    for (i = 0; i <= nSize; i++) {
-        j = numLinks = 0;
-        //TODO: figure out # of links
-        while (myGraph[i].hyperlinks[numLinks] != -1) {
-            numLinks++;
-        }
-        numLinks--;//Subtract the last increment
+    #pragma omp parallel default(none) shared(DEBUG, j, K, D, myGraph, nSize) private(i)
+    {
 
-        if (numLinks < 0) {
-        } else {
-            for (j = 0; j < K; j++) {
-                //TODO: Keep track of the top 5
-                //TODO: Possible: Use an array to keep track of the top 5 performers
+    //!For each node do a walk of size K visits
+    i=0, j=0;
+    double dampingRatio = (1 - D);
+    int seed = time(NULL);
+    double coinToss = -1;
+    int randomNode = -1;
+    int myTargetNode = -1;
+    int numLinks = 0;
 
-                //* Flip the coin, that is, use the Damping Ratio
-                coinToss = ((double)rand_r(&seed) / (double)RAND_MAX);
-                if(coinToss >= dampingRatio){
-                    randomNode = (rand_r(&seed) % (nSize + 1 - 0) + 0);
+        #pragma omp for
+        for (i = 0; i <= nSize; i++) {
+            j = numLinks = 0;
+            //TODO: figure out # of links
+            while (myGraph[i].hyperlinks[numLinks] != -1) {
+                numLinks++;
+            }
+            numLinks--;//Subtract the last increment
 
-                    myGraph[randomNode].pagerank++;
+            if (numLinks < 0) {
+            } else {
+                for (j = 0; j < K; j++) {
+                    //TODO: Keep track of the top 5
+                    //TODO: Possible: Use an array to keep track of the top 5 performers
 
-                    if (DEBUG) {
-                        if (myGraph[randomNode].hyperlinks[0] == -1) {
-                            puts("-=0=-={Found NonTargetable NODE: Empty links, treat as random page");
+                    //* Flip the coin, that is, use the Damping Ratio
+                    coinToss = ((double)rand_r(&seed) / (double)RAND_MAX);
+                    if(coinToss >= dampingRatio){
+                        randomNode = (rand_r(&seed) % (nSize + 1 - 0) + 0);
+
+                        myGraph[randomNode].pagerank++;
+
+                        if (DEBUG) {
+                            if (myGraph[randomNode].hyperlinks[0] == -1) {
+                                puts("-=0=-={Found NonTargetable NODE: Empty links, treat as random page");
+                            }
+                            printf("randomNode==%d  \t\t| myGraph[%d].pagerank++ == %d (current value)\n", randomNode, randomNode, myGraph[randomNode].pagerank);
+                        }  
+                    } else {
+                        //*Choose a TargetNode from this node
+                        randomNode = (rand_r(&seed) % (numLinks + 1 - 0) + 0);
+                        myTargetNode = myGraph[i].hyperlinks[randomNode];
+                        //*Increment TargetNode pagerank
+                        myGraph[myTargetNode].pagerank++;
+
+                        if (DEBUG) {
+                            if (myGraph[i].hyperlinks[randomNode] == -1) {
+                                puts("-=0=-={ERROR: Went out of bounds on array using rand");
+                            }
+                            printf("randomNode==%d \t\t|  Target=%d  \t|  myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ == %d (current value)\n", randomNode, myTargetNode, i, randomNode, myGraph[myTargetNode].pagerank);
+                        
+                            if (i == 4038) {
+                                puts("=====================[ DEBUG ]=====================");
+                                printf("Debug Test at i = %d\n", i);
+                                //getchar();                
+                            }
                         }
-                        printf("randomNode==%d  \t\t| myGraph[%d].pagerank++ == %d (current value)\n", randomNode, randomNode, myGraph[randomNode].pagerank);
-                    }  
-                } else {
-                    //*Choose a TargetNode from this node
-                    randomNode = (rand_r(&seed) % (numLinks + 1 - 0) + 0);
-                    myTargetNode = myGraph[i].hyperlinks[randomNode];
-                    //*Increment TargetNode pagerank
-                    myGraph[myTargetNode].pagerank++;
-
-                    if (DEBUG) {
-                        if (myGraph[i].hyperlinks[randomNode] == -1) {
-                            puts("-=0=-={ERROR: Went out of bounds on array using rand");
-                        }
-                        printf("randomNode==%d \t\t|  Target=%d  \t|  myGraph[myGraph[%d].hyperlinks[%d]].pagerank++ == %d (current value)\n", randomNode, myTargetNode, i, randomNode, myGraph[myTargetNode].pagerank);
                     }
+                }
+            }
+
+            if (DEBUG) {
+                if ((i % 10000) == 0) {
+                    puts("=====================[ DEBUG ]=====================");
+                    printf("Debug Test at i = %d\n", i);
+                    //FACEBOOK TEST
+                    //printf("%d\n", myGraph[3980].hyperlinks[54]);
+                    //getchar();
+                }
+                if (i == 4038) {
+                    puts("=====================[ DEBUG ]=====================");
+                    printf("Debug Test at i = %d\n", i);
+                    //getchar();                
                 }
             }
         }
 
-        if (DEBUG) {
-            if ((i % 10000) == 0) {
-                puts("=====================[ DEBUG ]=====================");
-                printf("Debug Test at i = %d\n", i);
-                //FACEBOOK TEST
-                //printf("%d\n", myGraph[3980].hyperlinks[54]);
-                //getchar();
-            }
-            if (i == 325727) {
-                puts("=====================[ DEBUG ]=====================");
-                printf("Debug Test at i = %d\n", i);
-                //getchar();                
+
+    }
+
+
+
+    //! Find top 5 most ranked pages
+    int topFive[5] = {0};
+    int topNodes[5] = {0};
+    int temp = 0;
+    int lowestVal = 0;
+    int lowValIndex = -1;
+
+    //? Initialisze top 5
+    for (i = 0; i < 5; i++) {
+        topFive[i] = myGraph[i].pagerank;
+        topNodes[i] = i;
+    }
+
+    //Select top 5 Sites
+    for (i = 0; i < nSize; i++) { // i = 5 for start
+        
+        //*Find curent lowest value in an array
+        lowestVal = topFive[0];
+        lowValIndex = 0;
+        for (j = 0; j < 5; j++) { // j = 1 for start
+            if (topFive[j] < lowestVal) { 
+                lowestVal = topFive[j];
+                lowValIndex = j;
             }
         }
+        
+        if (myGraph[i].pagerank > lowestVal) {
+            topFive[lowValIndex] = myGraph[i].pagerank;
+            topNodes[lowValIndex] = i;
+        }
     }
+
+    if (DEBUG) {
+        puts("====DEBUG====");
+        puts("TOP Five pages =");
+        for (i = 0; i < 5; i++) {
+            printf("Node=%d\tpageRank=%d\n", topNodes[i], topFive[i]);
+        }
+        puts("");
+    }
+
     close(fp);
 
     return 0;
