@@ -5,6 +5,8 @@
 //*** Inputs listed in sequence
 //* K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>
 
+int DEBUG = 1;
+
 int main(int argc, char const *argv[])
 {
     if(argc < 6){
@@ -23,26 +25,27 @@ int main(int argc, char const *argv[])
     strcpy(fileName, argv[3]);
     int t = atoi(argv[4]);
     int nSize = atoi(argv[5]);
-    DATA myGraph[nSize];
-    while(i < nSize){
+    //DATA myGraph[nSize+1];
+    DATA *myGraph = (DATA *)malloc(sizeof(DATA) * (nSize + 2));
+
+
+    for (i = 0; i < nSize+1; i++)
+    {
         myGraph[i].pagerank = 0;
-        while(j < 64){
+        for (j = 0; j < 3600; j++)
+        {
             myGraph[i].hyperlinks[j] = 0;
-            j++;
         }
-        i++;
     }
+        
 
 
-
-
-    
-    if(DEBUG){
+    if (DEBUG) {
         printf("K=%d  |  D=%lf  |  fileName=%s  |  t=%d  |  nSize=%d\n", K, D, fileName, t, nSize);
     }
 
     FILE *fp = fopen(fileName, "r");
-    if(fp == NULL){
+    if (fp == NULL) {
         printf("\n-=0={ERROR: Failed to Open %s}=0=-\n", fileName);
         return -1;
     }
@@ -52,43 +55,31 @@ int main(int argc, char const *argv[])
     int hyperlink = -1;
     i=0;
     j=0;
-    //while(j < 24){//feof(fp)){
-    while(feof(fp)){
-        fgets(buf, 512, fp);
-
-        //*If the first char in the line is a '#' ignore it
-        if(buf[0] == '#'){
+    
+    while (fgets(buf, 512, fp)) {
+        if(buf[0] == '#'){ //*If the first char in the line is a '#' ignore it
             if(DEBUG){
                 puts("testing");
                 sscanf(buf, "%d %d", &node, &hyperlink);
                 printf("node=%d  |  hyperlink=%d\n", node, hyperlink);
-            }
-            //!Skip lines with no data
-        }
-        else{
+            } //!Skip lines with no data
+        } else {
             i=0;
             sscanf(buf, "%d %d", &node, &hyperlink);
-            printf("node=%d  |  hyperlink=%d\n", node, hyperlink);
-            //iterate to find the next empty array spot to add a hyperlink to
-            while(myGraph[node].hyperlinks[i]){
-               i++; 
+            //iterate to find the next empty hyperlink array spot to add new link
+            while (myGraph[node].hyperlinks[i]) {
+                i++; 
             }
-            myGraph[node].hyperlinks[i] = hyperlink;//TODO: Add the end
+            myGraph[node].hyperlinks[i] = hyperlink;//Add to the end
 
-            //TODO: use random on the arraysize-1 to choose an index randomly to jump to
-        }
-        //* if next line is last line then keep node as size
-        if(DEBUG){
-            if(j == 17){
-                j++;
-                j--;
+            if (DEBUG) {
+                printf("myGraph[node=%d].hyperlinks[i=%d]  =  hyperlink=%d\n", node, i, myGraph[node].hyperlinks[i]);
             }
-        }
-        j++;
+        }//* if next line is last line then keep node as size
     }
 
     //Print out contents of the first 18 links of the graph
-    if(DEBUG){
+    if (DEBUG) {
         i=0, j=0;
         while(i < 24){
             j=0;
