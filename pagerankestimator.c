@@ -129,7 +129,7 @@ int main(int argc, char const *argv[])
     int myRank = omp_get_thread_num();
     int seed = myRank + timeOfLinux;
 
-        #pragma omp for
+        #pragma omp for schedule(dynamic)
         for (i = 0; i <= nSize; i++) {
             j = numLinks = 0;
             //TODO: figure out # of links
@@ -147,7 +147,7 @@ int main(int argc, char const *argv[])
                     //* Flip the coin, that is, use the Damping Ratio
                     coinToss = ((double)rand_r(&seed) / (double)RAND_MAX);
                     if(coinToss >= dampingRatio){
-                        seed = myRank + timeOfLinux;
+                        //seed = (myRank + timeOfLinux);
                         randomNode = (rand_r(&seed) % (nSize + 1 - 0) + 0);
 
                         myGraph[randomNode].pagerank++;
@@ -160,7 +160,7 @@ int main(int argc, char const *argv[])
                         }  
                     } else {
                         //*Choose a TargetNode from this node
-                        seed = myRank + timeOfLinux;
+                        //seed = (myRank + timeOfLinux);
                         randomNode = (rand_r(&seed) % (numLinks + 1 - 0) + 0);
                         myTargetNode = myGraph[i].hyperlinks[randomNode];
                         //*Increment TargetNode pagerank
@@ -216,35 +216,49 @@ int main(int argc, char const *argv[])
     for (i = 0; i < 5; i++) {
         topFive[i] = myGraph[i].pagerank;
         topNodes[i] = i;
+        /* if (i == 0) {
+            lowestVal = topFive[0];
+            lowValIndex = 0;
+        } else if (lowestVal > topFive[i]) {
+            lowestVal = topFive[i];
+            lowValIndex = i;
+        } */
     }
 
     //Select top 5 Sites
-    for (i = 0; i < nSize; i++) { // i = 5 for start
+    for (i = 5; i < nSize; i++) { // i = 5 for start
         
         //*Find curent lowest value in an array
-        lowestVal = topFive[0];
-        lowValIndex = 0;
-        for (j = 0; j < 5; j++) { // j = 1 for start
-            if (topFive[j] < lowestVal) { 
+        //lowestVal = topFive[0];
+        //lowValIndex = 0;
+        for (j = 0; j < 5; j++) { // j = 1 for start?
+            /* if (topFive[j] < lowestVal) { 
+                lowestVal = topFive[j];
+                lowValIndex = j;
+            } */
+            if (j == 0) {
+                lowestVal = topFive[0];
+                lowValIndex = 0;
+            } else if (lowestVal > topFive[j]) {
                 lowestVal = topFive[j];
                 lowValIndex = j;
             }
         }
         
-        if (myGraph[i].pagerank > lowestVal) {
+        if (myGraph[i].pagerank >= lowestVal) {
             topFive[lowValIndex] = myGraph[i].pagerank;
             topNodes[lowValIndex] = i;
         }
     }
 
-    puts("====== TOP Five pages =======");
+    printf("}======[ TOP 5 Nodes @ K=%d Threads=%d ]======={\n", K,t);
     for (i = 0; i < 5; i++) {
-        printf("Node=%d\tpageRank=%d\n", topNodes[i], topFive[i]);
+        printf("\tNode=%d  \tpageRank=%d\n", topNodes[i], topFive[i]);
     }
 
-    printf("Time to execute threaded code: %0.3lf s \n", duration);
+    printf("}===[ Time to execute threaded code: %0.3lf s ==={\n", duration);
 
-    close(fp);
+    fclose(fp);
 
     return 0;
 }
