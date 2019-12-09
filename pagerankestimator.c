@@ -31,6 +31,24 @@ int main(int argc, char const *argv[])
     char buf[512] = {0};
     int node = -1;
     int hyperlink = -1;
+
+    int thread_i = 0;
+    int walks_i = 0;
+
+
+    for (walks_i = 7; walks_i < 15; walks_i++) //K Walks multiples of 2
+    {
+        
+        K = (int) pow(2, walks_i);
+
+        //Test Num of threads
+        for (thread_i = 0; thread_i < 4; thread_i++)
+        {
+
+            t = (int) pow(2, thread_i);
+
+
+
     omp_set_num_threads(t);
 
 
@@ -289,6 +307,9 @@ int main(int argc, char const *argv[])
     fclose(outFile);
 
     fclose(fp);
+
+    }
+    }
 
     return 0;
 }

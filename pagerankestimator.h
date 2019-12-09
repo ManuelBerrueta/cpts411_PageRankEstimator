@@ -4,6 +4,7 @@
 #include <omp.h>
 #include <time.h>
 #include <assert.h>
+#include <math.h>
 
 typedef struct data{
     int pagerank;
