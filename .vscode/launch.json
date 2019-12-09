@@ -9,13 +9,15 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": ["10",                              //length of Random walks
+            "args": ["10000",                              //length of Random walks
                      ".10",                             //Damping Ratio
-                     "facebook_combined.txt",         //input files
+                     //"facebook_combined.txt",         //input files
                      //"web-NotreDame_sorted.txt",
-                     "4",                               //# of threads
-                     "4038"                                   //# of nodes
-                     //"325728" //"web-NotreDame_sorted.txt
+                     "web-Google_sorted.txt",
+                     "8",                               //# of threads
+                     //"4038"                                   //# of nodes
+                     //"325728" //"web-NotreDame_sorted.txt //#ofNodes
+                     "916427"
                     ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
