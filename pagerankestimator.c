@@ -53,7 +53,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    //#pragma omp parallel
+    clock_t inputLoadStartTime = clock();
     while (fgets(buf, 512, fp)) {
         if (buf[0] == '#') { //*If the first char in the line is a '#' ignore it
             if (DEBUG) {
@@ -77,6 +77,9 @@ int main(int argc, char const *argv[])
             }
         }//* if next line is last line then keep node as size
     }
+    clock_t endInputLoadTime = clock();
+    double inputLoadTime = ((double)(endInputLoadTime - inputLoadStartTime)) / CLOCKS_PER_SEC;
+
 
     if (DEBUG) { //Print contents of the first 24 nodes and each of its links 
         i=0, j=0;
@@ -251,12 +254,39 @@ int main(int argc, char const *argv[])
         }
     }
 
+    double pagRank = -1.0;
+
+    printf("}}=======![ Input Data Set = %s\n ]!======={{", fileName);
     printf("}======[ TOP 5 Nodes @ K=%d Threads=%d ]======={\n", K,t);
     for (i = 0; i < 5; i++) {
-        printf("\tNode=%d  \tpageRank=%d\n", topNodes[i], topFive[i]);
+        pagRank = (double)topFive[i] / (double)(nSize * K);
+        //pagRank = pagRank * 10.0;
+        printf("\tNode=%d  \tPageHits=%d \tpageRank=%0.3lf\n", topNodes[i], topFive[i], pagRank);
     }
 
     printf("}===[ Time to execute threaded code: %0.3lf s ==={\n", duration);
+    printf("}===[ Total input load time: %0.3lf s ==={\n", inputLoadTime);
+
+
+    char outFileName[64] = {0};
+    int copySize = strlen(fileName) - 4;
+    strncpy(outFileName, fileName, copySize);
+    strcat(outFileName, ".csv");
+    FILE *outFile = fopen(outFileName, "a");
+
+    fprintf(outFile, "FileName,K Walks,Num Of Threads\n");
+    fprintf(outFile, "%s,%d,%d\n", fileName, K, t);
+    fprintf(outFile, "}======[ TOP 5 Nodes ]======={\n");
+    fprintf(outFile, "Node,NumberOfHits,PageRank\n");
+
+    //! Loop to print out nodes
+    for (i = 0; i < 5; i++) {
+        pagRank = (double)topFive[i] / (double)(nSize * K);
+        fprintf(outFile, "%d,%d,%0.3lf\n", topNodes[i], topFive[i], pagRank);
+    }
+    fprintf(outFile, "==================================================================\n\n");
+
+    fclose(outFile);
 
     fclose(fp);
 
