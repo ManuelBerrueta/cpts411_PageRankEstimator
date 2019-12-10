@@ -1,7 +1,7 @@
 #include "pagerankestimator.h"
 
 //To compile OpenMP: gcc -o <execname> -fopenmp <source file names>
-
+//Requires OpenMP Library: sudo apt-get install libomp-dev
 //*** Inputs listed in sequence
 //* K:<length of random walk>, D:<damping ratio>, input:<input file>, t:<# of threads>, nSize:<Highest node value>
 
@@ -36,7 +36,8 @@ int main(int argc, char const *argv[])
     int walks_i = 0;
 
 
-    for (walks_i = 7; walks_i < 15; walks_i++) //K Walks multiples of 2
+    //! Use for running a the whole research for a data set
+/*     for (walks_i = 7; walks_i < 15; walks_i++) //K Walks multiples of 2
     {
         
         K = (int) pow(2, walks_i);
@@ -45,7 +46,7 @@ int main(int argc, char const *argv[])
         for (thread_i = 0; thread_i < 4; thread_i++)
         {
 
-            t = (int) pow(2, thread_i);
+            t = (int) pow(2, thread_i); */
 
 
 
@@ -279,7 +280,7 @@ int main(int argc, char const *argv[])
     for (i = 0; i < 5; i++) {
         pagRank = (double)topFive[i] / (double)(nSize * K);
         //pagRank = pagRank * 10.0;
-        printf("\tNode=%d  \tPageHits=%d \tpageRank=%0.3lf\n", topNodes[i], topFive[i], pagRank);
+        printf("\tNode=%d  \tPageHits=%d \tpageRank=%lf\n", topNodes[i], topFive[i], pagRank);
     }
 
     printf("}===[ Time to execute threaded code: %0.3lf s ==={\n", duration);
@@ -292,15 +293,15 @@ int main(int argc, char const *argv[])
     strcat(outFileName, ".csv");
     FILE *outFile = fopen(outFileName, "a");
 
-    fprintf(outFile, "FileName,K Walks,Num Of Threads\n");
-    fprintf(outFile, "%s,%d,%d\n", fileName, K, t);
+    fprintf(outFile, "FileName,K Walks,Num Of Threads,Time\n");
+    fprintf(outFile, "%s,%d,%d,%0.3lf\n", fileName, K, t, duration);
     fprintf(outFile, "}======[ TOP 5 Nodes ]======={\n");
     fprintf(outFile, "Node,NumberOfHits,PageRank\n");
 
     //! Loop to print out nodes
     for (i = 0; i < 5; i++) {
         pagRank = (double)topFive[i] / (double)(nSize * K);
-        fprintf(outFile, "%d,%d,%0.3lf\n", topNodes[i], topFive[i], pagRank);
+        fprintf(outFile, "%d,%d,%lf\n", topNodes[i], topFive[i], pagRank);
     }
     fprintf(outFile, "==================================================================\n\n");
 
@@ -308,8 +309,8 @@ int main(int argc, char const *argv[])
 
     fclose(fp);
 
-    }
-    }
+    //}
+    //}
 
     return 0;
 }
